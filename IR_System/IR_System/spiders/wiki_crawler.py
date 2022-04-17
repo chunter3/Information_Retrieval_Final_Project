@@ -21,7 +21,23 @@ class WikiCrawler(scrapy.Spider):
             
             webpage_content = requests.get(f"http://en.wikipedia.org{href}")
              
-            filename = f'{title}.html' 
+            filename = f'{title}.html'
+            html_files = [] 
             with open(filename, 'wb') as f:
-                f.write(webpage_content.content)
+                (f.write(webpage_content.content))
+
+                html_files.append(f)
+
+        f.close()
+
+        seed_content = requests.get('https://en.wikipedia.org/wiki/Etrian_Odyssey')
+
+        with open("Etrian_Odyssey.html", 'wb') as f:
+            (f.write(seed_content.content))
+
+            html_files.append(f)
+
+        f.close()
+
+        return html_files
 
