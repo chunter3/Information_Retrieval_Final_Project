@@ -1,13 +1,15 @@
+from fileinput import filename
+from bs4 import BeautifulSoup # Beautiful Soup is a Python library for extracting data from HTML and XML files
 import os
 import re
 import math
-from bs4 import BeautifulSoup # Beautiful Soup is a Python library for extracting data from HTML and XML files
+import pickle
 
 
 path = r'C:\Users\Chris Hunter\Desktop\Info_Retrieval_Final_Project\html_files'
 
 
-def InverseDF(term, corpus_count, index,):
+def InverseDF(term, corpus_count, index):
 
 # Inverse document frequency (IDF) auxiliary function; uses the inverted index to determine the IDF for a term and corpus
 
@@ -38,12 +40,12 @@ def TermFrequency(term, file):
 
   return (termCount/wordCount)
 
-def TF_IDFIndex():
+def TF_IDFIndex(valueType):  # valueType indicates the value structure of dictionary; if it's 0 use filenames; if it's 1 use docIDs
 
-  invertedIndex = {}
-  docID = 0
-
+  invertedIndex = {} # dictionary to be returned
+  filenames ={} # dictionary to ensure filenames are used instead of vague docIDs
   corpus = {} # dictionary with html filename as the key and the contents of the html value as the value
+  docID = 0
   
   for file in os.listdir(path): # os.listdir returns a list of the all html files on my local disk
     
@@ -77,6 +79,8 @@ def TF_IDFIndex():
 
            invertedIndex[word] = [docID]
 
+      filenames[docID] = file
+
   for key in invertedIndex.keys():
         
         docIDLst = invertedIndex[key]
@@ -88,9 +92,15 @@ def TF_IDFIndex():
         for docID in docIDLst:
           
           tf_score = TermFrequency(key,corpus[file])
-          
-          invertedIndex[key].append((docID,(tf_score*idf_score)))
-          
+
+          if valueType != 1:
+            
+            invertedIndex[key].append((filenames[docID],(tf_score*idf_score)))
+
+          else:
+
+            invertedIndex[key].append((docID,(tf_score*idf_score)))
+   
   return invertedIndex
 
 
@@ -109,7 +119,7 @@ def QueryVector(query, tf_idf_index):
       qvDict[token] = 0
       continue
 
-    qvDict[token] = InverseDF(token, tf_idf_index)
+    qvDict[token] = InverseDF(token, len(os.listdir(path)), tf_idf_index)
 
   return qvDict
 
@@ -137,7 +147,7 @@ def DocLength(queryVector, docID, tf_idf_index):
   return math.sqrt(sum)
 
 
-def CSSearch(query, tf_idf_index):
+def CSSearch(query, tf_idf_index = TF_IDFIndex(1)):  #valueType of 1 to help with cosine similarity computation
 
 # Cosine similarity search function
 
@@ -173,7 +183,8 @@ def CSSearch(query, tf_idf_index):
 
 
 def main():
-    print(len((TF_IDFIndex())["game"]))
+    with open('invertedindex.pickle', 'wb') as index:
+      pickle.dump(TF_IDFIndex(0), index, protocol=pickle.HIGHEST_PROTOCOL)
 
 if __name__ == "__main__":
     main()
