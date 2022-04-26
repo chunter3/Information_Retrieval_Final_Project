@@ -1,0 +1,24 @@
+<!DOCTYPE html>
+<html>
+<head>
+<title>Inverted Index</title>
+</head>
+<body>
+    <h1>Etrian Odyssey Inverted Index</h1>
+<hr>
+
+<a href="{{ url_for('interface') }}">Return to Home</a>
+
+<div class = "wrapper">
+
+    <div class="data">
+        {% block body %}
+
+         {{ inverted_index }}
+
+        {% endblock %}
+    
+    </div>
+</div>
+</body>
+</html>

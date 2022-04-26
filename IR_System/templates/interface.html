@@ -1,0 +1,38 @@
+<!DOCTYPE html>
+<html>
+<head>
+<title>Information Retrieval Final Project</title>
+</head>
+<body>
+    <h1>Wikipedia Crawler</h1>
+<hr>
+
+<div class = "wrapper">
+
+    <div class="data">
+        {% block body %}
+
+        <p>Hello and welcome to the EO (Etian Odyssey) Wikipedia web crawler. The seed URL is https://en.wikipedia.org/wiki/Etrian_Odyssey"</p>
+
+        <form method="POST">
+            <table>
+                <tr>
+                    <td>Query: </td> <td> <input type="text" name="query" /> </td>
+                </tr>
+            </table>
+                <br>
+            <input class="button" type="submit" formaction="/search" value="Search">
+            <input class="button" type="submit" formaction="/index" value="Check Inverted Index">
+        </form>
+
+        <div class="content">
+
+            
+
+        </div>
+        {% endblock %}
+    
+    </div>
+</div>
+</body>
+</html>
