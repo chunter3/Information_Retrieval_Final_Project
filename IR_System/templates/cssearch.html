@@ -4,12 +4,14 @@
 <title>Cosine Similarity Search Results</title>
 </head>
 <body>
-    <h1>Etrian Odyssey Inverted Index</h1>
+    <h1>Search Results </h1>
 <hr>
 
 <a href="{{ url_for('interface') }}">Return to Home</a>
 
 <div class = "wrapper">
+
+     <p>This is a legend of the documents. Feel free to highlight a specific wiki page and go to it</p>
 
     <div class="data">
         
@@ -17,12 +19,21 @@
          {{ legend }}
     
     </div>
+
+    <br>
+
+    <p>This is the query vector along with its score</p>
     
     <div class="data">
 
          {{ queryVector }}
     
     </div>
+
+    <br>
+
+    <p>Here is list of the most relevant documents based on cosine similarity.</p>
+    <p>Refer to the legend to discern which document corresponds with which document ID</p> 
 
     <div class="data">
 

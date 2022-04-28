@@ -1,4 +1,5 @@
 import imp
+from importlib import invalidate_caches
 import math
 import os
 import re
@@ -7,6 +8,8 @@ from flask import Flask
 from flask import render_template, request, redirect
 import pickle
 import json
+import nltk
+
 
 html_file_path = r'C:\Users\Chris Hunter\Desktop\Info_Retrieval_Final_Project\html_files'
 
@@ -35,10 +38,23 @@ def getTF_IDF_Index():
 def search():
   form = request.form
   query = str(form['query'])
-  legend = fileLegend()
-  queryVector = QueryVector(query)
-  scores = CSSearch(queryVector)
-  return render_template('cssearch.html', legend=legend,queryVector=queryVector,scores=scores)
+  invertedIndex = TF_IDFIndex(1)
+  errors = QueryErrors(query, invertedIndex)
+
+  if len(errors) == 0:
+    
+    legend = fileLegend()
+    queryVector = QueryVector(query)
+    scores = CSSearch(queryVector)
+    return render_template('cssearch.html', legend=legend, queryVector=queryVector, scores=scores)
+
+  corrections = []
+
+  for error in errors:
+
+    corrections.append((error, SpellingCorr(error,invertedIndex)))
+
+  return render_template('interface.html', corrections=corrections)
 
 
 #------------Indexer Functions----------------
@@ -83,7 +99,9 @@ def fileLegend():
     
     docID+=1
 
-    filenames[docID] = file
+    file = file.replace(" ", "_")
+
+    filenames[docID] = (f'https://en.wikipedia.org/wiki/{file[:-5]}')
 
   return filenames
 
@@ -148,13 +166,6 @@ def TF_IDFIndex(valueType):  # valueType indicates the value structure of dictio
             invertedIndex[key].append((docID,(tf_score*idf_score)))
 
   return invertedIndex 
-  #with open('invertedindex.pickle', 'wb') as index:
-   #   pickle.dump(invertedIndex, index, protocol=pickle.HIGHEST_PROTOCOL)
-      
-    #  index.close()
-
-  #return index
-
 
 def QueryVector(query, tf_idf_index = TF_IDFIndex(1)):
 
@@ -231,6 +242,119 @@ def CSSearch(queryVector, tf_idf_index = TF_IDFIndex(1)):  #valueType of 1 to he
 
   return scores
 
+def QueryErrors(query, index):
+  
+  errors = []
+
+  splitQuery = query.split()
+
+  for term in splitQuery:
+    
+    if term not in index.keys():
+      
+      errors.append(term)
+
+  return errors  
+
+def SpellingCorr(query,index):        # Spelling correction functions for free text queries              
+
+  bigramDict = {}          
+
+  bigrams = []
+
+  nwcQuery = query        
+
+  query = "$" + query + "$" 
+
+  for x in range (1,len(query)):
+      bigramDict[(query[x-1:x+1]).replace("$","")] = []     
+      bigrams.append(query[x-1:x+1]) 
+  
+  for bigram in bigrams:
+
+    if "$" in bigram[0]:                                   
+      for key in index.keys():                             
+        if bigram[1] == key[0]:
+          bigramDict[bigram[1]].append(key)
+
+    elif "$" in bigram[1]:                                  
+      for key in index.keys():
+        if bigram[0] == key[-1]:
+          bigramDict[bigram[0]].append(key)
+
+    else:
+      for key in index.keys():                              
+        if bigram in key:                 
+          bigramDict[bigram].append(key)
+
+  bigrams.clear()
+  
+  for x in range (1,len(query)):                            
+    bigrams.append((query[x-1:x+1]).replace("$",""))
+
+ #-------------------------------------Get edit distances        
+
+  editDists = []                    # 2D array of edit distances
+
+  minDists = []                     # 1D array of the minimum edit distances
+
+  for bigram in bigrams:
+    editDist = []                   # 1D array of edit distances
+    for term in bigramDict[bigram]:
+      editDist.append(nltk.edit_distance(nwcQuery,term))
+    editDists.append(editDist)
+
+  for lst in editDists:
+    if len(lst) == 0:
+      continue
+    minDists.append(min(lst))
+
+#------------------------------------Edit distances obtained; generating suggestions
+
+  minDist = min(minDists)
+
+  suggestions = []           # A list of potential spelling suggestions
+
+  pointer = -1                # Tracks list position in editDists
+ 
+  for lst in editDists:
+    pointer+=1
+    for x in range(0,len(lst)):
+      if lst[x] == minDist:
+        suggestions.append(bigramDict[bigrams[pointer]][x])
+
+  return list(set(suggestions))        # Removing duplicate suggestions and returning them
+    
+
+
+    
+
+      
+
+
+
+      
+
+      
+
+      
+      
+      
+    
+
+
+
+
+
+
+
+
+
+
+
+
+
+#----------------------------------------------
 
 if __name__ == '__main__':
   app.run(debug=True)
