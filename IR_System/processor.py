@@ -325,35 +325,6 @@ def SpellingCorr(query,index):        # Spelling correction functions for free t
 
   return list(set(suggestions))        # Removing duplicate suggestions and returning them
     
-
-
-    
-
-      
-
-
-
-      
-
-      
-
-      
-      
-      
-    
-
-
-
-
-
-
-
-
-
-
-
-
-
 #----------------------------------------------
 
 if __name__ == '__main__':
